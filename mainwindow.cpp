@@ -113,18 +113,23 @@ double MainWindow::fitness(const QImage image)
 }
 void MainWindow::saveGenerate()
 {
-	QPixmap backup(width*2,height);
-	QPainter painter(&backup);
-	painter.drawPixmap (0,0,width,height,
-						QPixmap::fromImage (source),
-						0,0,width,height);
-	painter.drawPixmap (width,0,width,height,
-						*imageMap,
-						0,0,width,height);
-	painter.end ();
-	QFile file("backup.png");
-	file.open(QIODevice::WriteOnly);
-	backup.save(&file, "PNG");
+	QString str = QFileDialog::getSaveFileName (this,tr("Выберите место для сохранения прогресса"),
+												"",tr("Images (*.png *.jpg)"));
+	if(str!="")
+	{
+		QPixmap backup(width*2,height);
+		QPainter painter(&backup);
+		painter.drawPixmap (0,0,width,height,
+							QPixmap::fromImage (source),
+							0,0,width,height);
+		painter.drawPixmap (width,0,width,height,
+							*imageMap,
+							0,0,width,height);
+		painter.end ();
+		QFile file(str);
+		file.open(QIODevice::WriteOnly);
+		backup.save(&file);
+	}
 }
 void MainWindow::continueGenerate()
 {
@@ -190,8 +195,12 @@ void MainWindow::loadFile()
 }
 void MainWindow::saveRezult()
 {
-	QString str = QFileDialog::getSaveFileName (this,tr("Выберите место для сохранения результата"),"",tr("Images (*.png *.jpg)"));
-	QFile file(str);
-	file.open(QIODevice::WriteOnly);
-	imageMap->save(&file);
+	QString str = QFileDialog::getSaveFileName (this,tr("Выберите место для сохранения результата"),
+												"",tr("Images (*.png *.jpg)"));
+	if(str!="")
+	{
+		QFile file(str);
+		file.open(QIODevice::WriteOnly);
+		imageMap->save(&file);
+	}
 }
