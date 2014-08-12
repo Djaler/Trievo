@@ -104,8 +104,8 @@ double MainWindow::fitness(const QImage image)
 			double green=colorSource.greenF ()-colorImage.greenF ();
 			double blue=colorSource.blueF ()-colorImage.blueF ();
 			double pixelDistance=red * red +
-								green * green +
-								blue * blue;
+									green * green +
+									blue * blue;
 			fitness+=pixelDistance;
 		}
 	}
@@ -183,7 +183,7 @@ void MainWindow::loadFile()
 
 		delete right;
 		right = new QLabel;
-		right->setPixmap (*imageMap);
+		right->setPixmap (QPixmap(width,height));
 		layout->addWidget (right,0,1);
 
 		start->setEnabled (true);
