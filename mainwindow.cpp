@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-
 MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent)
 {
@@ -75,11 +74,11 @@ void MainWindow::paintEvent(QPaintEvent *e)
 
 		if(fitnessAfter<fitnessBefore)
 		{
+			qDebug()<<fitnessAfter<<" "<<fitnessBefore<<endl;
+			qDebug()<<++step<<" "<<startTime.secsTo (QTime::currentTime ())<<endl;
+
 			right->setPixmap (*imageMap);
 			fitnessBefore=fitnessAfter;
-
-			qDebug()<<++step<<" "<<startTime.secsTo (QTime::currentTime ())<<endl;
-			//startTime=QTime::currentTime ();
 		}
 		else
 		{
@@ -104,8 +103,8 @@ double MainWindow::fitness(const QImage image)
 			double green=colorSource.greenF ()-colorImage.greenF ();
 			double blue=colorSource.blueF ()-colorImage.blueF ();
 			double pixelDistance=red * red +
-								green * green +
-								blue * blue;
+									green * green +
+									blue * blue;
 			fitness+=pixelDistance;
 		}
 	}
@@ -179,6 +178,7 @@ void MainWindow::loadFile()
 
 		delete imageMap;
 		imageMap=new QPixmap(width,height);
+		imageMap->fill (Qt::black);
 		fitnessBefore=fitness(imageMap->toImage ());
 
 		delete right;
@@ -187,6 +187,8 @@ void MainWindow::loadFile()
 		layout->addWidget (right,0,1);
 
 		start->setEnabled (true);
+		stop->hide ();
+		start->show();
 
 		timer->stop ();
 
