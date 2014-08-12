@@ -183,7 +183,7 @@ void MainWindow::loadFile()
 
 		delete right;
 		right = new QLabel;
-		right->setPixmap (*imageMap);
+		right->setPixmap (QPixmap(width,height));
 		layout->addWidget (right,0,1);
 
 		start->setEnabled (true);
