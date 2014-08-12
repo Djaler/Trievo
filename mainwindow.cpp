@@ -74,7 +74,7 @@ void MainWindow::paintEvent(QPaintEvent *e)
 
 		if(fitnessAfter<fitnessBefore)
 		{
-			qDebug()<<fitnessAfter<<" "<<fitnessBefore<<endl;
+			qDebug()<<fitnessAfter<<endl;
 			qDebug()<<++step<<" "<<startTime.secsTo (QTime::currentTime ())<<endl;
 
 			right->setPixmap (*imageMap);
@@ -92,6 +92,7 @@ void MainWindow::paintEvent(QPaintEvent *e)
 double MainWindow::fitness(const QImage image)
 {
 	double fitness=0;
+
 	for(int w=0; w<width; w++)
 	{
 		for(int h=0; h<height;h++)

@@ -58,7 +58,7 @@ class MainWindow : public QWidget
 			start->hide ();
 			stop->show ();
 			saveGen->setDisabled (true);
-			saveRez->setDisabled (true);
+			saveRez->setEnabled (true);
 		}
 		void stopGenerate()
 		{
@@ -67,7 +67,6 @@ class MainWindow : public QWidget
 			stop->hide ();
 			start->show ();
 			saveGen->setEnabled (true);
-			saveRez->setEnabled (true);
 		}
 		void paintStep()
 		{
