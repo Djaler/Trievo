@@ -60,25 +60,33 @@ void MainWindow::paintEvent(QPaintEvent *e)
 		QColor randColor(qrand()%255+0,qrand()%255+0,qrand()%255+0,qrand()%254+1);
 		painter.setBrush(QBrush(randColor));
 
-		int num=3;
-		QPoint points[num];
-		for(int i=0; i<num; i++)
+		QPoint points[3];
+		int l=width;
+		int r=0;
+		int t=height;
+		int b=0;
+		for(int i=0; i<3; i++)
 		{
-			points[i]=QPoint(qrand()%width,qrand()%height);
+			int x=qrand()%width;
+			int y=qrand()%height;
+			if(x<l)
+				l=x;
+			if(x>r)
+				r=x;
+			if(y<t)
+				t=y;
+			if(y>b)
+				b=y;
+			points[i]=QPoint(x,y);
 		}
-
-		painter.drawPolygon (points,num);
+		painter.drawPolygon (points,3);
 		painter.end ();
 
-		fitnessAfter=fitness(imageMap->toImage ());
-
-		if(fitnessAfter<fitnessBefore)
+		if(fitness(imageMap->toImage (),l,r,t,b)<fitness(oldMap.toImage (),l,r,t,b))
 		{
-			qDebug()<<fitnessAfter<<endl;
 			qDebug()<<++step<<" "<<startTime.secsTo (QTime::currentTime ())<<endl;
 
 			right->setPixmap (*imageMap);
-			fitnessBefore=fitnessAfter;
 		}
 		else
 		{
@@ -88,22 +96,21 @@ void MainWindow::paintEvent(QPaintEvent *e)
 	}
 }
 
-
-double MainWindow::fitness(const QImage image)
+qreal MainWindow::fitness(const QImage image, int left, int right, int top, int bottom)
 {
-	double fitness=0;
+	qreal fitness=0;
 
-	for(int w=0; w<width; w++)
+	for(int w=left; w<right; w++)
 	{
-		for(int h=0; h<height;h++)
+		for(int h=top; h<bottom; h++)
 		{
 			QColor colorSource=source.pixel (w,h);
 			QColor colorImage=image.pixel (w,h);
 
-			double red=colorSource.redF ()-colorImage.redF ();
-			double green=colorSource.greenF ()-colorImage.greenF ();
-			double blue=colorSource.blueF ()-colorImage.blueF ();
-			double pixelDistance=red * red +
+			qreal red=colorSource.redF ()-colorImage.redF ();
+			qreal green=colorSource.greenF ()-colorImage.greenF ();
+			qreal blue=colorSource.blueF ()-colorImage.blueF ();
+			qreal pixelDistance=	red * red +
 									green * green +
 									blue * blue;
 			fitness+=pixelDistance;
@@ -133,7 +140,8 @@ void MainWindow::saveGenerate()
 }
 void MainWindow::continueGenerate()
 {
-	QString str = QFileDialog::getOpenFileName(0, tr("Выберите изображение"), "", "");
+	QString str = QFileDialog::getOpenFileName(0, tr("Выберите файл с сохраненным прогрессом"),
+											   "", tr("Images (*.png *.jpg)"));
 	if (str!="")
 	{
 		QPixmap loadMap(str);
@@ -149,7 +157,6 @@ void MainWindow::continueGenerate()
 
 		delete imageMap;
 		imageMap=new QPixmap(loadMap.copy (width,0,width,height));
-		fitnessBefore=fitness(imageMap->toImage ());
 
 		delete right;
 		right = new QLabel;
@@ -165,7 +172,8 @@ void MainWindow::continueGenerate()
 }
 void MainWindow::loadFile()
 {
-	QString str = QFileDialog::getOpenFileName(this, tr("Выберите изображение"), "", "*.png *.jpg");
+	QString str = QFileDialog::getOpenFileName(this, tr("Выберите изображение"),
+											   "", tr("Images (*.png *.jpg)"));
 	if(str!="")
 	{
 		delete left;
@@ -180,7 +188,6 @@ void MainWindow::loadFile()
 		delete imageMap;
 		imageMap=new QPixmap(width,height);
 		imageMap->fill (Qt::black);
-		fitnessBefore=fitness(imageMap->toImage ());
 
 		delete right;
 		right = new QLabel;

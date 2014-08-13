@@ -22,7 +22,7 @@ class MainWindow : public QWidget
 	public:
 		MainWindow(QWidget *parent = 0);
 		void paintEvent (QPaintEvent *e);
-		double fitness(const QImage image);
+		qreal fitness(const QImage image, int left, int right, int top, int bottom);
 	private:
 		QGridLayout *layout;
 		QPushButton *load;
@@ -43,8 +43,6 @@ class MainWindow : public QWidget
 		QTimer *timer;
 
 		int step;
-		double fitnessBefore;
-		double fitnessAfter;
 	public slots:
 		void loadFile();
 		void continueGenerate();
