@@ -9,10 +9,12 @@ QT       += core gui
 TARGET = Trievo
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
 	mainwindow.cpp \
     sourceimage.cpp
 
 HEADERS  += mainwindow.h \
     sourceimage.h
+
+QMAKE_LFLAGS += -fopenmp
+QMAKE_CXXFLAGS += -fopenmp

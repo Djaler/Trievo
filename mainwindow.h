@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QPainter>
 #include <QFile>
+#include <QThread>
 #include "sourceimage.h"
 
 #include <QDebug>

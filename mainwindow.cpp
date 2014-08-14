@@ -45,8 +45,6 @@ MainWindow::MainWindow(QWidget *parent)
 	setLayout (layout);
 
 	setMaximumSize (QWidget::minimumSizeHint ());
-
-	step=0;
 }
 void MainWindow::paintEvent(QPaintEvent *e)
 {
@@ -81,7 +79,6 @@ void MainWindow::paintEvent(QPaintEvent *e)
 		}
 		painter.drawPolygon (points,3);
 		painter.end ();
-
 		if(fitness(imageMap->toImage (),l,r,t,b)<fitness(oldMap.toImage (),l,r,t,b))
 		{
 			qDebug()<<++step<<" "<<startTime.secsTo (QTime::currentTime ())<<endl;
@@ -99,21 +96,24 @@ void MainWindow::paintEvent(QPaintEvent *e)
 qreal MainWindow::fitness(const QImage image, int left, int right, int top, int bottom)
 {
 	qreal fitness=0;
-
-	for(int w=left; w<right; w++)
+	#pragma omp parallel reduction (+: fitness) num_threads(QThread::idealThreadCount ())
 	{
-		for(int h=top; h<bottom; h++)
+		#pragma omp for
+		for(int w=left; w<right; w++)
 		{
-			QColor colorSource=source.pixel (w,h);
-			QColor colorImage=image.pixel (w,h);
+			for(int h=top; h<bottom; h++)
+			{
+				QColor colorSource=source.pixel (w,h);
+				QColor colorImage=image.pixel (w,h);
 
-			qreal red=colorSource.redF ()-colorImage.redF ();
-			qreal green=colorSource.greenF ()-colorImage.greenF ();
-			qreal blue=colorSource.blueF ()-colorImage.blueF ();
-			qreal pixelDistance=	red * red +
-									green * green +
-									blue * blue;
-			fitness+=pixelDistance;
+				qreal red=colorSource.redF ()-colorImage.redF ();
+				qreal green=colorSource.greenF ()-colorImage.greenF ();
+				qreal blue=colorSource.blueF ()-colorImage.blueF ();
+				qreal pixelDistance=	red * red +
+										green * green +
+										blue * blue;
+				fitness+=pixelDistance;
+			}
 		}
 	}
 	return fitness;
@@ -167,6 +167,8 @@ void MainWindow::continueGenerate()
 
 		timer->stop ();
 
+		step=0;
+
 		setMaximumSize (QWidget::minimumSizeHint ());
 	}
 }
@@ -199,6 +201,8 @@ void MainWindow::loadFile()
 		start->show();
 
 		timer->stop ();
+
+		step=0;
 
 		setMaximumSize (QWidget::minimumSizeHint ());
 	}
