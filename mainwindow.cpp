@@ -13,9 +13,9 @@ MainWindow::MainWindow(QWidget *parent)
 	layout->addWidget (load,1,0);
 	connect(load,SIGNAL(pressed()),this,SLOT(loadFile()));
 
-	loadMap=new QPushButton(tr("Продолжить"));
-	layout->addWidget (loadMap,2,0);
-	connect(loadMap,SIGNAL(pressed()),this,SLOT(continueGenerate()));
+	loadImage=new QPushButton(tr("Продолжить"));
+	layout->addWidget (loadImage,2,0);
+	connect(loadImage,SIGNAL(pressed()),this,SLOT(continueGenerate()));
 
 	start=new QPushButton(tr("Генерировать"));
 	layout->addWidget (start,1,1);
@@ -38,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent)
 	saveRez->setDisabled (true);
 
 	imageMap=new QPixmap;
+	rezMap=new QPixmap;
+	loadMap=new QPixmap;
 
 	timer = new QTimer;
 	connect(timer, SIGNAL(timeout()), this, SLOT(paintStep()));
@@ -78,12 +80,42 @@ void MainWindow::paintEvent(QPaintEvent *e)
 			points[i]=QPoint(x,y);
 		}
 		painter.drawPolygon (points,3);
-		painter.end ();
+
+		/* квадраты
+		int x=qrand()%width;
+		int y=qrand()%height;
+		int s=(width-x<height-y)?(qrand()%(width-x)):(qrand()%(height-y));
+		painter.drawRect(x,y,s,s);
+		int l=x,t=y,r=x+s,b=y+s;
+		*/
+
+		/* круги
+		int x=qrand()%width;
+		int y=qrand()%height;
+		int s=(width-x<height-y)?(qrand()%(width-x)):(qrand()%(height-y));
+		painter.drawEllipse(x,y,s,s);
+		int l=x,t=y,r=x+s,b=y+s;
+		*/
+
+		painter.end();
+
 		if(fitness(imageMap->toImage (),l,r,t,b)<fitness(oldMap.toImage (),l,r,t,b))
 		{
 			qDebug()<<++step<<" "<<startTime.secsTo (QTime::currentTime ())<<endl;
 
 			right->setPixmap (*imageMap);
+
+			painter.begin(rezMap);
+			painter.setRenderHint(QPainter::Antialiasing, true);
+			painter.setPen(QPen(Qt::transparent));
+			painter.setBrush(QBrush(randColor));
+			for(int i=0; i<3; i++)
+			{
+				points[i].rx()*=scaleFactor;
+				points[i].ry()*=scaleFactor;
+			}
+			painter.drawPolygon (points,3);
+			painter.end();
 		}
 		else
 		{
@@ -124,14 +156,16 @@ void MainWindow::saveGenerate()
 												"",tr("Images (*.png *.jpg)"));
 	if(str!="")
 	{
-		QPixmap backup(width*2,height);
+		int origWidth=loadMap->width();
+		int origHeight=loadMap->height();
+		QPixmap backup(origWidth*2,origHeight);
 		QPainter painter(&backup);
-		painter.drawPixmap (0,0,width,height,
-							QPixmap::fromImage (source),
-							0,0,width,height);
-		painter.drawPixmap (width,0,width,height,
-							*imageMap,
-							0,0,width,height);
+		painter.drawPixmap (0,0,origWidth,origHeight,
+							*loadMap,
+							0,0,origWidth,origHeight);
+		painter.drawPixmap (origWidth,0,origWidth,origHeight,
+							*rezMap,
+							0,0,origWidth,origHeight);
 		painter.end ();
 		QFile file(str);
 		file.open(QIODevice::WriteOnly);
@@ -144,19 +178,28 @@ void MainWindow::continueGenerate()
 											   "", tr("Images (*.png *.jpg)"));
 	if (str!="")
 	{
-		QPixmap loadMap(str);
+		delete loadMap;
+		loadMap = new QPixmap(str);
+		QPixmap buf(loadMap->scaledToHeight(300));
+
+		width=buf.width()/2;
+		height=buf.height();
 
 		delete left;
 		left = new SourceImage;
-		left->loadImage (loadMap.copy (0,0,loadMap.width ()/2,loadMap.height ()));
+		left->loadImage (buf.copy (0,0,width,height));
 		layout->addWidget (left,0,0);
 		source=left->getImage ();
 
-		width=left->width ();
-		height=left->height ();
+		delete rezMap;
+		rezMap=new QPixmap(loadMap->copy(loadMap->width()/2,0,loadMap->width()/2,loadMap->height()));
 
 		delete imageMap;
-		imageMap=new QPixmap(loadMap.copy (width,0,width,height));
+		imageMap=new QPixmap(rezMap->scaledToHeight(300));
+
+		buf=loadMap->copy(0,0,loadMap->width()/2,loadMap->height());
+		delete loadMap;
+		loadMap = new QPixmap(buf);
 
 		delete right;
 		right = new QLabel;
@@ -164,7 +207,8 @@ void MainWindow::continueGenerate()
 		layout->addWidget (right,0,1);
 
 		start->setEnabled (true);
-
+		saveGen->setDisabled(true);
+		saveRez->setDisabled(true);
 		timer->stop ();
 
 		step=0;
@@ -178,9 +222,12 @@ void MainWindow::loadFile()
 											   "", tr("Images (*.png *.jpg)"));
 	if(str!="")
 	{
+		delete loadMap;
+		loadMap = new QPixmap(str);
+
 		delete left;
 		left = new SourceImage;
-		left->loadImage (str,250);
+		left->loadImage(str,300);
 		layout->addWidget (left,0,0);
 		source=left->getImage ();
 
@@ -191,12 +238,20 @@ void MainWindow::loadFile()
 		imageMap=new QPixmap(width,height);
 		imageMap->fill (Qt::black);
 
+		delete rezMap;
+		rezMap=new QPixmap(loadMap->size());
+		rezMap->fill(Qt::black);
+
+		scaleFactor=static_cast<double>(loadMap->height())/static_cast<double>(left->getImage().height());
+
 		delete right;
 		right = new QLabel;
 		right->setPixmap (*imageMap);
 		layout->addWidget (right,0,1);
 
 		start->setEnabled (true);
+		saveGen->setDisabled(true);
+		saveRez->setDisabled(true);
 		stop->hide ();
 		start->show();
 
@@ -215,6 +270,23 @@ void MainWindow::saveRezult()
 	{
 		QFile file(str);
 		file.open(QIODevice::WriteOnly);
-		imageMap->save(&file);
+		rezMap->save(&file);
 	}
+}
+void MainWindow::startGenerate()
+{
+	startTime=QTime::currentTime ();
+	timer->start(1);
+
+	start->hide ();
+	stop->show ();
+	saveGen->setEnabled (true);
+	saveRez->setEnabled (true);
+}
+void MainWindow::stopGenerate()
+{
+	timer->stop ();
+
+	stop->hide ();
+	start->show ();
 }

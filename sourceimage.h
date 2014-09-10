@@ -1,9 +1,7 @@
 #ifndef SOURCEIMAGE_H
 #define SOURCEIMAGE_H
 
-#include <QWidget>
-#include <QPixmap>
-#include <QLabel>
+#include <QtGui>
 
 class SourceImage : public QWidget
 {

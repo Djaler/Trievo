@@ -1,21 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QWidget>
-#include <QLabel>
-#include <QImage>
-#include <QPixmap>
-#include <QTimer>
-#include <QTime>
-#include <QFileDialog>
-#include <QGridLayout>
-#include <QPushButton>
-#include <QPainter>
-#include <QFile>
-#include <QThread>
+#include <QtCore>
+#include <QtGui>
 #include "sourceimage.h"
-
-#include <QDebug>
 class MainWindow : public QWidget
 {
 		Q_OBJECT
@@ -29,7 +17,7 @@ class MainWindow : public QWidget
 		QPushButton *load;
 		QPushButton *start;
 		QPushButton *stop;
-		QPushButton *loadMap;
+		QPushButton *loadImage;
 		QPushButton *saveGen;
 		QPushButton *saveRez;
 
@@ -38,8 +26,11 @@ class MainWindow : public QWidget
 
 		int width;
 		int height;
-		QPixmap *imageMap;
+		QPixmap *loadMap;
 		QImage source;
+		QPixmap *imageMap;
+		QPixmap *rezMap;
+		double scaleFactor;
 		QTime startTime;
 		QTimer *timer;
 
@@ -49,24 +40,8 @@ class MainWindow : public QWidget
 		void continueGenerate();
 		void saveGenerate();
 		void saveRezult();
-		void startGenerate()
-		{
-			startTime=QTime::currentTime ();
-			timer->start(1);
-
-			start->hide ();
-			stop->show ();
-			saveGen->setDisabled (true);
-			saveRez->setEnabled (true);
-		}
-		void stopGenerate()
-		{
-			timer->stop ();
-
-			stop->hide ();
-			start->show ();
-			saveGen->setEnabled (true);
-		}
+		void startGenerate();
+		void stopGenerate();
 		void paintStep()
 		{
 			paintEvent (0);
