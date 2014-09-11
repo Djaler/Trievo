@@ -20,6 +20,7 @@ class MainWindow : public QWidget
 		QPushButton *loadImage;
 		QPushButton *saveGen;
 		QPushButton *saveRez;
+		QSlider *sizeSlider;
 
 		SourceImage *left;
 		QLabel *right;
@@ -42,6 +43,7 @@ class MainWindow : public QWidget
 		void saveRezult();
 		void startGenerate();
 		void stopGenerate();
+		void changeSize(int Size);
 		void paintStep()
 		{
 			paintEvent (0);

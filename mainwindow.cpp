@@ -7,42 +7,50 @@ MainWindow::MainWindow(QWidget *parent)
 	left = new SourceImage;
 	right=new QLabel;
 
-	layout =new QGridLayout(this);
-
-	load=new QPushButton(tr("Открыть"));
-	layout->addWidget (load,1,0);
-	connect(load,SIGNAL(pressed()),this,SLOT(loadFile()));
-
-	loadImage=new QPushButton(tr("Продолжить"));
-	layout->addWidget (loadImage,2,0);
-	connect(loadImage,SIGNAL(pressed()),this,SLOT(continueGenerate()));
-
-	start=new QPushButton(tr("Генерировать"));
-	layout->addWidget (start,1,1);
-	connect(start,SIGNAL(pressed()),this,SLOT(startGenerate()));
-	start->setDisabled (true);
-
-	saveGen=new QPushButton(tr("Сохранить прогресс"));
-	layout->addWidget (saveGen,2,1);
-	connect(saveGen,SIGNAL(pressed()),this,SLOT(saveGenerate()));
-	saveGen->setDisabled (true);
-
-	stop=new QPushButton(tr("Остановить"));
-	layout->addWidget (stop,1,1);
-	connect(stop,SIGNAL(pressed()),this,SLOT(stopGenerate()));
-	stop->hide ();
-
-	saveRez=new QPushButton(tr("Сохранить результат"));
-	layout->addWidget (saveRez,3,0,1,2);
-	connect(saveRez,SIGNAL(pressed()),this,SLOT(saveRezult()));
-	saveRez->setDisabled (true);
-
 	imageMap=new QPixmap;
 	rezMap=new QPixmap;
 	loadMap=new QPixmap;
 
 	timer = new QTimer;
 	connect(timer, SIGNAL(timeout()), this, SLOT(paintStep()));
+
+	layout =new QGridLayout(this);
+
+	sizeSlider=new QSlider(Qt::Horizontal);
+	layout->addWidget(sizeSlider,0,0,1,2);
+	sizeSlider->setRange(250,500);
+	sizeSlider->setSingleStep(10);
+	sizeSlider->setPageStep(10);
+	sizeSlider->setDisabled(true);
+	connect(sizeSlider,SIGNAL(valueChanged(int)),this,SLOT(changeSize(int)));
+
+	load=new QPushButton(tr("Открыть"));
+	layout->addWidget (load,2,0);
+	connect(load,SIGNAL(pressed()),this,SLOT(loadFile()));
+
+	start=new QPushButton(tr("Генерировать"));
+	layout->addWidget (start,2,1);
+	connect(start,SIGNAL(pressed()),this,SLOT(startGenerate()));
+	start->setDisabled (true);
+
+	stop=new QPushButton(tr("Остановить"));
+	layout->addWidget (stop,2,1);
+	connect(stop,SIGNAL(pressed()),this,SLOT(stopGenerate()));
+	stop->hide ();
+
+	loadImage=new QPushButton(tr("Продолжить"));
+	layout->addWidget (loadImage,3,0);
+	connect(loadImage,SIGNAL(pressed()),this,SLOT(continueGenerate()));
+
+	saveGen=new QPushButton(tr("Сохранить прогресс"));
+	layout->addWidget (saveGen,3,1);
+	connect(saveGen,SIGNAL(pressed()),this,SLOT(saveGenerate()));
+	saveGen->setDisabled (true);
+
+	saveRez=new QPushButton(tr("Сохранить результат"));
+	layout->addWidget (saveRez,4,0,1,2);
+	connect(saveRez,SIGNAL(pressed()),this,SLOT(saveRezult()));
+	saveRez->setDisabled (true);
 
 	setLayout (layout);
 
@@ -124,7 +132,6 @@ void MainWindow::paintEvent(QPaintEvent *e)
 		}
 	}
 }
-
 qreal MainWindow::fitness(const QImage image, int left, int right, int top, int bottom)
 {
 	qreal fitness=0;
@@ -180,22 +187,22 @@ void MainWindow::continueGenerate()
 	{
 		delete loadMap;
 		loadMap = new QPixmap(str);
-		QPixmap buf(loadMap->scaledToHeight(300));
+		QPixmap buf(loadMap->scaledToHeight(sizeSlider->value()));
 
 		width=buf.width()/2;
 		height=buf.height();
 
 		delete left;
 		left = new SourceImage;
-		left->loadImage (buf.copy (0,0,width,height));
-		layout->addWidget (left,0,0);
+		left->loadImage (buf.copy (1,0,width,height));
+		layout->addWidget (left,1,0);
 		source=left->getImage ();
 
 		delete rezMap;
 		rezMap=new QPixmap(loadMap->copy(loadMap->width()/2,0,loadMap->width()/2,loadMap->height()));
 
 		delete imageMap;
-		imageMap=new QPixmap(rezMap->scaledToHeight(300));
+		imageMap=new QPixmap(rezMap->scaledToHeight(sizeSlider->value()));
 
 		buf=loadMap->copy(0,0,loadMap->width()/2,loadMap->height());
 		delete loadMap;
@@ -204,11 +211,15 @@ void MainWindow::continueGenerate()
 		delete right;
 		right = new QLabel;
 		right->setPixmap (*imageMap);
-		layout->addWidget (right,0,1);
+		layout->addWidget (right,1,1);
 
 		start->setEnabled (true);
 		saveGen->setDisabled(true);
 		saveRez->setDisabled(true);
+		sizeSlider->setEnabled(true);
+		stop->hide ();
+		start->show();
+
 		timer->stop ();
 
 		step=0;
@@ -227,8 +238,8 @@ void MainWindow::loadFile()
 
 		delete left;
 		left = new SourceImage;
-		left->loadImage(str,300);
-		layout->addWidget (left,0,0);
+		left->loadImage(loadMap->scaledToHeight(sizeSlider->value()));
+		layout->addWidget (left,1,0);
 		source=left->getImage ();
 
 		width=left->width ();
@@ -247,13 +258,14 @@ void MainWindow::loadFile()
 		delete right;
 		right = new QLabel;
 		right->setPixmap (*imageMap);
-		layout->addWidget (right,0,1);
+		layout->addWidget (right,1,1);
 
 		start->setEnabled (true);
 		saveGen->setDisabled(true);
 		saveRez->setDisabled(true);
 		stop->hide ();
 		start->show();
+		sizeSlider->setEnabled(true);
 
 		timer->stop ();
 
@@ -282,6 +294,7 @@ void MainWindow::startGenerate()
 	stop->show ();
 	saveGen->setEnabled (true);
 	saveRez->setEnabled (true);
+	sizeSlider->setDisabled(true);
 }
 void MainWindow::stopGenerate()
 {
@@ -289,4 +302,29 @@ void MainWindow::stopGenerate()
 
 	stop->hide ();
 	start->show ();
+}
+void MainWindow::changeSize(int Size)
+{
+	if(Size%10==0)
+	{
+		delete left;
+		left = new SourceImage;
+		left->loadImage(loadMap->scaledToHeight(Size));
+		layout->addWidget (left,1,0);
+		source=left->getImage ();
+
+		width=left->getImage().width();
+		height=left->getImage().height();
+		scaleFactor=static_cast<double>(loadMap->height())/static_cast<double>(height);
+
+		delete right;
+		right = new QLabel;
+		right->setPixmap (rezMap->scaledToHeight(Size));
+		layout->addWidget (right,1,1);
+
+		delete imageMap;
+		imageMap=new QPixmap(rezMap->scaledToHeight(sizeSlider->value()));
+
+		setMaximumSize (QWidget::minimumSizeHint ());
+	}
 }
