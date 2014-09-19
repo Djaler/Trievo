@@ -18,3 +18,8 @@ HEADERS  += mainwindow.h \
 
 QMAKE_LFLAGS += -fopenmp
 QMAKE_CXXFLAGS += -fopenmp
+
+win32:RC_FILE = myapp.rc
+
+OTHER_FILES += \
+    icon.ico

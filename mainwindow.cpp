@@ -1,7 +1,10 @@
 #include "mainwindow.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent)
 {
+	setWindowIcon (QIcon("icon.ico"));
+
 	qsrand (QTime(0,0,0).msecsTo (QTime::currentTime ()));
 
 	left = new SourceImage;
