@@ -22,4 +22,5 @@ QMAKE_CXXFLAGS += -fopenmp
 win32:RC_FILE = myapp.rc
 
 OTHER_FILES += \
-    icon.ico
+    icon.ico \
+    myapp.rc
