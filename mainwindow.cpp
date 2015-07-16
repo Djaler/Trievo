@@ -4,8 +4,9 @@ MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent)
 {
 	setWindowIcon (QIcon("icon.ico"));
-
 	qsrand (QTime(0,0,0).msecsTo (QTime::currentTime ()));
+
+	numCores=omp_get_num_procs();
 
 	left = new SourceImage;
 	right=new QLabel;
@@ -13,9 +14,6 @@ MainWindow::MainWindow(QWidget *parent)
 	imageMap=new QPixmap;
 	rezMap=new QPixmap;
 	loadMap=new QPixmap;
-
-	timer = new QTimer;
-	connect(timer, SIGNAL(timeout()), this, SLOT(paintStep()));
 
 	layout =new QGridLayout(this);
 
@@ -57,12 +55,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 	setLayout (layout);
 
+	timer = new QTimer;
+	connect(timer, SIGNAL(timeout()), this, SLOT(paintStep()));
+
 	setMaximumSize (QWidget::minimumSizeHint ());
 }
 void MainWindow::paintEvent(QPaintEvent *e)
 {
 	if(e==0)
 	{
+		QTime firstTime(QTime::currentTime());
 		QPixmap oldMap(*imageMap);
 
 		QPainter painter (imageMap);
@@ -70,6 +72,7 @@ void MainWindow::paintEvent(QPaintEvent *e)
 		painter.setPen(QPen(Qt::transparent));
 		QColor randColor(qrand()%255+0,qrand()%255+0,qrand()%255+0,qrand()%254+1);
 		painter.setBrush(QBrush(randColor));
+
 
 		QPoint points[3];
 		int l=width;
@@ -113,7 +116,8 @@ void MainWindow::paintEvent(QPaintEvent *e)
 		if(fitness(imageMap->toImage (),l,r,t,b)<fitness(oldMap.toImage (),l,r,t,b))
 		{
 			qDebug()<<++step<<" "<<startTime.secsTo (QTime::currentTime ())<<endl;
-
+			if(step%500==0)
+				QProcess::execute(tr("notify-send %1 треугольников").arg(step));
 			right->setPixmap (*imageMap);
 
 			painter.begin(rezMap);
@@ -138,7 +142,7 @@ void MainWindow::paintEvent(QPaintEvent *e)
 qreal MainWindow::fitness(const QImage image, int left, int right, int top, int bottom)
 {
 	qreal fitness=0;
-	#pragma omp parallel reduction (+: fitness) num_threads(QThread::idealThreadCount ())
+	#pragma omp parallel reduction (+: fitness) num_threads(numCores)
 	{
 		#pragma omp for
 		for(int w=left; w<right; w++)

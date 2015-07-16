@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include <QtGui>
+#include <omp.h>
 #include "sourceimage.h"
 class MainWindow : public QWidget
 {
@@ -25,13 +26,14 @@ class MainWindow : public QWidget
 		SourceImage *left;
 		QLabel *right;
 
+		int numCores;
 		int width;
 		int height;
+		double scaleFactor;
 		QPixmap *loadMap;
 		QImage source;
 		QPixmap *imageMap;
 		QPixmap *rezMap;
-		double scaleFactor;
 		QTime startTime;
 		QTimer *timer;
 
